@@ -1,3 +1,5 @@
+# E8M0: 0 sign bit, 8 exponent bits, 0 fraction bits.
+
 import math
 
 
