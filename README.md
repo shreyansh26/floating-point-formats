@@ -2,6 +2,7 @@
 
 This directory contains small scripts that enumerate and decode several low-precision floating-point formats:
 
+- `e8m0.py`
 - `fp4.py`
 - `fp8.py`
 - `fp16.py`
@@ -29,6 +30,13 @@ where:
 - `E` is the exponent field interpreted as an unsigned integer
 - `M` is the mantissa/fraction field interpreted as an unsigned integer
 - `bias` is usually `2^(e - 1) - 1`
+
+`E8M0` is the notable exception in this folder:
+
+- it has no sign bit
+- it has 8 exponent bits
+- it has 0 mantissa bits
+- it is primarily used as a scale type in MX formats
 
 ## Decode Formula
 
@@ -72,6 +80,45 @@ E = max_exponent, M != 0  -> NaN
 ```
 
 Not every ML format uses this convention. Some low-precision ML formats reserve no encodings for `Inf` or `NaN`.
+
+## `E8M0`
+
+`E8M0` is not a conventional signed floating-point data type.
+
+It is an unsigned exponent-only format:
+
+- 8 exponent bits
+- 0 mantissa bits
+- no sign bit
+- bias `127`
+
+For the OCP MX scale type used in microscaling formats:
+
+- `0xFF` is reserved for `NaN`
+- there is no zero encoding
+- there is no infinity encoding
+- all other encodings represent powers of two
+
+So the decode rule is:
+
+```text
+bits = 255      -> NaN
+bits = 0..254   -> 2^(bits - 127)
+```
+
+This means the supported finite exponent range is:
+
+```text
+-127 .. 127
+```
+
+and the finite values are:
+
+```text
+2^-127, 2^-126, ..., 2^126, 2^127
+```
+
+Because `E8M0` has no sign bit and no mantissa, there are no subnormals.
 
 ## Why `mantissa / 2^m`?
 
@@ -117,6 +164,29 @@ n-bit mask = (1 << n) - 1
 ```
 
 ## Formats In This Folder
+
+### `e8m0.py`
+
+- Format: `E8M0`
+- Bits: 8 exponent, 0 mantissa, no sign
+- Bias: `127`
+- Interpretation in this repo: OCP MX scale type
+
+Important details:
+
+- `0xFF` is the single `NaN` encoding
+- `0x00` is not zero; it decodes to `2^-127`
+- there are no subnormals
+- there are no infinities
+- every finite value is an exact power of two
+
+So:
+
+```text
+decode(bits) = 2^(bits - 127), for bits in 0..254
+```
+
+This is the scale format used by MX formats such as `MXFP4`, `MXFP6`, and `MXFP8`.
 
 ### `fp4.py`
 
