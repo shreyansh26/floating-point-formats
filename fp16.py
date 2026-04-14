@@ -1,3 +1,5 @@
+# E5M10: 1 sign bit, 5 exponent bits, 10 fraction bits.
+
 import math
 
 
