@@ -29,6 +29,8 @@ nan_count = sum(1 for value in decoded if math.isnan(value))
 
 print("total encodings:", len(decoded))
 print("unique finite values:", len(finite_values))
+print("min finite:", finite_values[0])
+print("max finite:", finite_values[-1])
 print(finite_values)
 print("special encodings:")
 print("  -inf:", neg_inf_count)
